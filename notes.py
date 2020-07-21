@@ -35,7 +35,6 @@ while True:
         note_status = data[0]
         note_number = data[1]
         velocity = data[2]
-        #print(shell)
         #print("timestamp: ",timestamp)
         #print("note_number: ",note_number)
         #print("velocity: ",velocity)
