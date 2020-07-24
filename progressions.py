@@ -18,8 +18,9 @@ def buildChordTypes():
         chordTypes.append(rm.lower()+"7")
         chordTypes.append(rm + "maj7")
 
+    #print(chordTypes)
     return chordTypes
-print(buildChordTypes())
+
 def FindScaleKeys(tonic):
     allKeys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     tonicIndex = allKeys.index(tonic)
@@ -29,34 +30,48 @@ def FindScaleKeys(tonic):
     return scaleKeys
 
 def ConvertChordsToScaleDegrees(currentProgression, tonic):
-    chordTypeDict = {"Major": "", "Minor" : "m", "7": "7"} #THis dictionary pairs chord names with their scale degree symbols
-    romanNumeralDict = {0: "I", 1: "II", 2: "III", 3: "IV", 4: "V", }
+    chordTypeDict = {"Major": "", "Minor" : "", "7" : "7", "Major 7":"maj7", "Minor 7":"m7", "Minor Major 7":"mMaj7",  "Major Minor 7":"Mm7", "Augmented":"aug", "Diminished": "dim", "Sus 2":"sus2", "Sus 4":"sus4"} #THis dictionary pairs chord names with their scale degree symbols
+    romanNumeralDict = {0: "I", 1: "II", 2: "III", 3: "IV", 4: "V", 5:"VI", 6:"VII"}
     scaleKeys = FindScaleKeys(tonic)
     scaleDegreeProgression = []
     for chord in currentProgression:
+        scaleDegree = ""
         if not chord:
             scaleDegree = ""
         else:
-            scaleDegree = romanNumeralDict[scaleKeys.index(chord[0])] + chordTypeDict[chord[1]]
+            if(chord[1] == "Minor" or chord[1] == "Minor Major 7" or chord[1] == "Diminished"):
+                scaleDegree += romanNumeralDict[scaleKeys.index(chord[0])].lower() + chordTypeDict[chord[1]]
+            else:
+                scaleDegree = romanNumeralDict[scaleKeys.index(chord[0])] + chordTypeDict[chord[1]]
         scaleDegreeProgression.append(scaleDegree)
     #print(scaleDegreeProgression)
     return scaleDegreeProgression
 
 def ConvertScaleDegreesToChords(currentProgression, tonic):
-    #currentProgression = ["I", "", "IV", ""] ivm7
-    #tonic = "C"
-    romanNumeralDict = {0: "I", 1: "II", 2: "III", 3: "IV", 4: "V", 5: "VI", 6: "VII",}
-    romanNumeralDict = {v: k for k, v in romanNumeralDict.iteritems()}
-    matchingStrings = ["dim", "aug", "m", "7", "VII", "vii", "VI", "vi", "V", "v", "IV", "iv", "III", "iii", "II", "ii", "I", "i"]
-
+    #Input looks like this (["I7", "Vaug", "IVm7", "vi"], "C")
+    romanNumeralDict = {0: "I", 1: "II", 2: "III", 3: "IV", 4: "V", 5: "VI", 6: "VII"}
+    modifierDict = {0: "I", 1: "II", 2: "III", 3: "IV", 4: "V", 5: "VI", 6: "VII"}
+    romanNumeralDict = {v: k for k, v in romanNumeralDict.items()}
+    matchingStrings = ["dim", "aug", "VII", "vii", "III", "iii", "VI", "vi", "IV", "iv", "II", "ii", "m7", "V", "v", "I", "i", "7", ] #This is ordered in string size so the largest strins always get prioritized
     scaleKeys = FindScaleKeys(tonic)
-    chordInfo = []
+    #print(scaleKeys)
+    scaleDegreeProgression = []
     for chord in currentProgression:
+        chordType = ""
+        modifiers = ""
         for str in matchingStrings:
-            chordInfo.append(str)
-            chord.replace(str, "")
+            if(str in chord):
+                if(str.upper() in romanNumeralDict.keys()):
 
-    #print(scaleDegreeProgression)
+                    chordType += (scaleKeys[romanNumeralDict[str.upper()]])
+                    chordType += "" if str.isupper() else "m"
+                    chord = chord.replace(str, "")
+                else:
+                     modifiers += str
+                     chord = chord.replace(str, "")
+
+        scaleDegreeProgression.append(chordType + " " + modifiers)
+    print(scaleDegreeProgression)
     return scaleDegreeProgression
 
 def MatchingIndices(currentProgression, potentialProgression):
@@ -66,7 +81,7 @@ def MatchingIndices(currentProgression, potentialProgression):
             if(chord != potentialProgression[currentProgression.index(chord) + i] and chord != ""):
                 return False
         return True
-#DEBUG MATCHINDICIES HERE---
+
 #print(MatchingIndices(["I", "", "V", ""], ["I", "IV", "V", "vi"]))
 
 def SuggestChords(currentProgression, tonic):
@@ -103,4 +118,5 @@ def SuggestChords(currentProgression, tonic):
     return potentialProgressions
 
 #DEBUG TESTING
+#SuggestChords takes in a list in which each entry is a list containing the note and quality, and the root of the progression
 #SuggestChords([["C", "Major"], ["G", "7"], []], "C")
